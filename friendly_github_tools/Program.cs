@@ -34,8 +34,9 @@ namespace friendly_github_tools
             client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
 
             var streamTask = client.GetStreamAsync("https://api.github.com/orgs/dotnet/repos");
-            
-            return JsonSerializer.DeserializeAsync<List<Repository>>(streamTask.Result).Result;
+            streamTask.Wait();
+            var json_task = JsonSerializer.DeserializeAsync<List<Repository>>(streamTask.Result);
+            return json_task.GetAwaiter().GetResult();
         }
 
     }
