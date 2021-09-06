@@ -26,7 +26,7 @@ namespace friendly_github_tools
             var token = "";
             if (token != "")
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(token);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("token", token);
             }
 
 
@@ -35,7 +35,7 @@ namespace friendly_github_tools
             //    new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
             client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
 
-            var streamTask = client.GetStreamAsync("https://api.github.com/orgs/dotnet/repos");
+            var streamTask = client.GetStreamAsync("https://api.github.com/user/repos");
             streamTask.Wait();
             var json_task = JsonSerializer.DeserializeAsync<List<Repository>>(streamTask.Result);
             return json_task.GetAwaiter().GetResult();
@@ -70,8 +70,8 @@ namespace friendly_github_tools
         }
         static void Main(string[] args)
         {
-            //FirstPass();
-            SecondPass();
+            FirstPass();
+            //SecondPass();
             Console.WriteLine("Hello World!");
         }
     }
