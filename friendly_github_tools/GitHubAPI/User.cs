@@ -38,5 +38,18 @@ namespace friendly_github_tools.GitHubAPI
                 return retval;
             }
         }
+
+        public Repository FindRepoByName(string name)
+        {
+            foreach (var i in Repositories)
+            {
+                if (i.Name == name)
+                {
+                    return i;
+                }
+            }
+
+            return null;
+        }
     }
 }

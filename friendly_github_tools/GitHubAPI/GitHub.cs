@@ -22,6 +22,7 @@ namespace friendly_github_tools.GitHubAPI
         {
             var creds = new InMemoryCredentialStore(new Credentials(token));
             _client = new GitHubClient(new ProductHeaderValue("friendly_github_tools"), creds);
+            //var rl = new Octokit.RateLimit();
         }
 
         /// <summary>
