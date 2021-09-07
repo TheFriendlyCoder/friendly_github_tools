@@ -1,4 +1,5 @@
-﻿using Octokit;
+﻿using System.Collections.Generic;
+using Octokit;
 
 namespace friendly_github_tools.GitHubAPI
 {
@@ -27,6 +28,25 @@ namespace friendly_github_tools.GitHubAPI
             _obj = repo;
         }
 
+        /// <summary>
+        /// Name of the repository
+        /// </summary>
         public string Name => _obj.Name;
+
+        /// <summary>
+        /// List of 0 or more releases associated with this repository
+        /// </summary>
+        public List<Release> Releases
+        {
+            get
+            {
+                List<Release> retval = new List<Release>();
+                foreach (var i in _client.Repository.Release.GetAll("TheFriendlyCoder", Name).Result)
+                {
+                    retval.Add(new Release(_client, i));
+                }
+                return retval;
+            }
+        }
     }
 }
