@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using friendly_github_tools.GitHubAPI;
 using Octokit;
 using Octokit.Internal;
 
@@ -57,6 +58,7 @@ namespace friendly_github_tools
 
         static void SecondPass()
         {
+            // Reference: https://octokitnet.readthedocs.io/en/latest/
             var token = "";
             var project_name = "friendly_github_tools";
 
@@ -68,10 +70,27 @@ namespace friendly_github_tools
                 Console.WriteLine(i.Name);
             }
         }
+
+        static void ThirdPass(string token)
+        {
+            var client = new GitHub(token);
+            foreach (var i in client.CurrentUser.Repositories)
+            {
+                Console.WriteLine(i.Name);
+            }
+        }
         static void Main(string[] args)
         {
-            FirstPass();
+            // TODO: Add support for CI to build the package in 3 variations: windows, linux and mac
+            // TODO: Add support for reading releases for a project
+            // TODO: Add support for publishing a file to a release
+            // TODO: Add command line parameter for API token
+            // TODO: Figure out how to pass release info to tool in a simple way for publishing files
+            // TODO: Make use of the tool itself to publish it's own release to Github
+            string token = System.IO.File.ReadAllText(@"..\..\..\..\key.txt");
+            //FirstPass();
             //SecondPass();
+            ThirdPass(token);
             Console.WriteLine("Hello World!");
         }
     }
