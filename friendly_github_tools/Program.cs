@@ -26,6 +26,9 @@ namespace friendly_github_tools
                 
             }
 
+            var newRelease = repo.CreateRelease("fubar");
+            newRelease.Name = "MyCoolName";
+            Console.WriteLine(newRelease.Name);
             Console.WriteLine(client.RemainingRateLimit);
         }
     }

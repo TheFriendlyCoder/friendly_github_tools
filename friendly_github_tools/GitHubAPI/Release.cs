@@ -14,22 +14,37 @@ namespace friendly_github_tools.GitHubAPI
         /// <summary>
         /// Reference to the Octokit object describing the release being managed
         /// </summary>
-        private readonly Octokit.Release _release;
+        private Octokit.Release _release;
+        /// <summary>
+        /// Repository this release is associated with
+        /// </summary>
+        private readonly Octokit.Repository _parent;
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="client">Octokit object used for interacting with the GitHub REST API</param>
+        /// <param name="parentRepo">Reference to the repository this release is associated with</param>
         /// <param name="repo">Reference to the Octokit object describing the GitHub release</param>
-        public Release(GitHubClient client, Octokit.Release release)
+        public Release(GitHubClient client, Octokit.Repository parentRepo, Octokit.Release release)
         {
             _client = client;
             _release = release;
+            _parent = parentRepo;
         }
 
         /// <summary>
         /// Descriptive name associated with the release
         /// </summary>
-        public string Name => _release.Name;
+        public string Name
+        {
+            get => _release.Name;
+            set
+            {
+                var updateRelease = _release.ToUpdate();
+                updateRelease.Name = value;
+                _release = _client.Repository.Release.Edit(_parent.Id, _release.Id, updateRelease).Result;
+            }
+        }
 
         /// <summary>
         /// Indicates whether this release is yet to be promoted to a pre-release or full release status

@@ -40,14 +40,24 @@ namespace friendly_github_tools.GitHubAPI
         {
             get
             {
-                
                 List<Release> retval = new List<Release>();
-                foreach (var i in _client.Repository.Release.GetAll(_obj.Owner.Login, Name).Result)
+                foreach (var i in _client.Repository.Release.GetAll(_obj.Id).Result)
                 {
-                    retval.Add(new Release(_client, i));
+                    retval.Add(new Release(_client, _obj, i));
                 }
                 return retval;
             }
+        }
+
+        /// <summary>
+        /// Creates a new release where we can deploy artifacts to
+        /// </summary>
+        /// <param name="tagName">Name of the tag to associate with this release</param>
+        /// <returns>Reference to the newly created release</returns>
+        public Release CreateRelease(string tagName)
+        {
+            var data = new NewRelease(tagName) {Draft = true};
+            return new Release(_client, _obj, _client.Repository.Release.Create(_obj.Id, data).Result);
         }
     }
 }
