@@ -40,8 +40,9 @@ namespace friendly_github_tools.GitHubAPI
         {
             get
             {
+                
                 List<Release> retval = new List<Release>();
-                foreach (var i in _client.Repository.Release.GetAll("TheFriendlyCoder", Name).Result)
+                foreach (var i in _client.Repository.Release.GetAll(_obj.Owner.Login, Name).Result)
                 {
                     retval.Add(new Release(_client, i));
                 }

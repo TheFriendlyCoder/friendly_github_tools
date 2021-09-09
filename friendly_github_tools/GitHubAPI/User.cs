@@ -38,7 +38,13 @@ namespace friendly_github_tools.GitHubAPI
                 return retval;
             }
         }
-
+        /// <summary>
+        /// Attempts to locate a repository with a specific name
+        /// </summary>
+        /// <param name="name">The name of the repository to locate</param>
+        /// <returns>
+        /// Reference to the repository with the given name, or null if no repo found with that name
+        /// </returns>
         public Repository FindRepoByName(string name)
         {
             foreach (var i in Repositories)
