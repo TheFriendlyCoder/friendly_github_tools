@@ -50,13 +50,14 @@ namespace friendly_github_tools.GitHubAPI
         }
 
         /// <summary>
-        /// Creates a new release where we can deploy artifacts to
+        /// Creates a new draft release where we can deploy artifacts to
+        /// Caller is responsible for finalizing the release and marking it as
+        /// a release or pre-release once that setup is complete
         /// </summary>
-        /// <param name="tagName">Name of the tag to associate with this release</param>
         /// <returns>Reference to the newly created release</returns>
-        public Release CreateRelease(string tagName)
+        public Release CreateRelease()
         {
-            var data = new NewRelease(tagName) {Draft = true};
+            var data = new NewRelease("Draft") {Draft = true};
             return new Release(_client, _obj, _client.Repository.Release.Create(_obj.Id, data).Result);
         }
     }

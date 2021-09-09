@@ -26,7 +26,8 @@ namespace friendly_github_tools
                 
             }
 
-            var newRelease = repo.CreateRelease("fubar");
+            var newRelease = repo.CreateRelease();
+            Console.WriteLine(newRelease.Name);
             newRelease.Name = "MyCoolName";
             Console.WriteLine(newRelease.Name);
             Console.WriteLine(client.RemainingRateLimit);
