@@ -1,4 +1,5 @@
-﻿using Octokit;
+﻿using System.IO;
+using Octokit;
 
 namespace friendly_github_tools.GitHubAPI
 {
@@ -55,5 +56,28 @@ namespace friendly_github_tools.GitHubAPI
         /// Indicates whether this release is being considered for full release or not
         /// </summary>
         public bool IsPreRelease => _release.Prerelease;
+
+        public Asset AddAsset(string pathToFile)
+        {
+            using (var archiveData = File.OpenRead(pathToFile))
+            {
+                var assetUpload = new ReleaseAssetUpload()
+                {
+                    FileName = Path.GetFileName(pathToFile),
+                    ContentType = "application/octet-stream",
+                    RawData = archiveData
+                };
+                var asset = _client.Repository.Release.UploadAsset(_release, assetUpload).Result;
+                return new Asset(_client, asset);
+            }
+        }
+
+        /// <summary>
+        /// Deletes this release from the repository. This operation is destructive and unrecoverable.
+        /// </summary>
+        public void Delete()
+        {
+            _client.Repository.Release.Delete(_parent.Id, _release.Id);
+        }
     }
 }
