@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Octokit;
 
 namespace friendly_github_tools.GitHubAPI
@@ -59,6 +60,10 @@ namespace friendly_github_tools.GitHubAPI
 
         public Asset AddAsset(string pathToFile)
         {
+            if (! File.Exists(pathToFile))
+            {
+                throw new Exception($"File not found {pathToFile}");
+            }
             using (var archiveData = File.OpenRead(pathToFile))
             {
                 var assetUpload = new ReleaseAssetUpload()
