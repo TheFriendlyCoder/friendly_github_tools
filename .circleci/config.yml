@@ -1,0 +1,201 @@
+ersion: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: mcr.microsoft.com/dotnet/sdk:5.0
+    steps:
+      - checkout
+      - run:
+          name: Configure Version
+          command: |
+            export PROJ_VER=${CIRCLE_TAG:-0.0.1.$CIRCLE_BUILD_NUM-dev}
+            echo $PROJ_VER > version.txt
+            echo "export PROJ_VER=0.0.1.$CIRCLE_BUILD_NUM-dev" >> $BASH_ENV
+      - run:
+          name: Build
+          command: |
+            echo "Project version is ${PROJ_VER}"
+            dotnet publish -c Release -r win10-x64 /p:Version=$PROJ_VER friendly_github_tools
+            dotnet publish -c Release -r linux-x64 /p:Version=$PROJ_VER friendly_github_tools
+            dotnet publish -c Release -r osx-x64 /p:Version=$PROJ_VER friendly_github_tools
+            mkdir binaries
+            mv "./friendly_github_tools/bin/Release/netcoreapp3.1/win10-x64/publish/friendly_github_tools.exe" "./binaries/friendly_github_tools_windows.exe"
+            mv "./friendly_github_tools/bin/Release/netcoreapp3.1/linux-x64/publish/friendly_github_tools" "./binaries/friendly_github_tools_linux"
+            mv "./friendly_github_tools/bin/Release/netcoreapp3.1/osx-x64/publish/friendly_github_tools" "./binaries/friendly_github_tools_macos"
+      # - run: 
+      #     name: Tests 
+      #     command: |
+      #       dotnet test --logger "trx;LogFileName=loggerFile.trx" ./tests/tests.csproj /p:CollectCoverage=true /p:CoverletOutput=./coverage/ /p:CoverletOutputFormat=opencover /p:Threshold=90
+      #       dotnet tool install trx2junit
+      #       dotnet tool run trx2junit tests/TestResults/*.trx
+      - store_artifacts:
+          path: ./binaries
+      # - store_test_results:
+      #     path: tests/TestResults
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./binaries/*
+            - version.txt
+      # - persist_to_workspace:
+      #     root: ./tests/coverage
+      #     paths:
+      #       - coverage.opencover.xml
+  
+  # build_docs:
+  #   docker:
+  #     - image: mono:latest
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         command: |
+  #           apt update
+  #           apt install -y unzip
+  #           curl -L https://github.com/dotnet/docfx/releases/latest/download/docfx.zip -o docfx.zip
+  #           unzip -d .docfx docfx.zip
+  #           mono ./.docfx/docfx.exe ./docfx_project/docfx.json
+  #     - persist_to_workspace:
+  #         root: ./
+  #         paths:
+  #           - ./docfx_project/_site/*
+
+  # publish:
+  #   docker:
+  #     - image: mcr.microsoft.com/dotnet/sdk:5.0
+  #   steps:
+  #     - checkout
+  #     - attach_workspace:
+  #         at: ./artifacts
+  #     - run:
+  #         name: Setup Tools
+  #         command: |
+  #           apt update
+  #           apt install -y jq
+  #           curl -L https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz --output ghr.tar.gz
+  #           tar --no-same-owner -xzf ghr.tar.gz
+  #           curl -L https://github.com/github/hub/releases/download/v2.14.2/hub-linux-amd64-2.14.2.tgz --output hub.tgz
+  #           tar --no-same-owner -xzf hub.tgz
+  #     - run:
+  #         name: Publish code coverage
+  #         command: |
+  #           export COMMIT_MESSAGE=`git log --format=%B -n 1 $CIRCLE_SHA1`
+  #           echo "COMMIT_MESSAGE is $COMMIT_MESSAGE"
+  #           dotnet tool install --add-source "https://ci.appveyor.com/nuget/coveralls-net-t37a9a9unhwk" coveralls.net
+  #           dotnet tool run csmacnz.Coveralls --opencover -i "./artifacts/coverage.opencover.xml" --useRelativePaths --commitId "$CIRCLE_SHA1" --commitBranch "${CIRCLE_BRANCH:-$CIRCLE_TAG}" --commitAuthor "$CIRCLE_USERNAME" --jobId "$CIRCLE_BUILD_NUM" --serviceName circleci --commitMessage "$COMMIT_MESSAGE"
+  #     - run:
+  #         name: Publish Github Release
+  #         command: |
+  #           # Setup version number
+  #           if [ "${CIRCLE_BRANCH}" == "master" ]
+  #           then
+  #             # for master builds we treat them as pre releases which will auto generate
+  #             # a tag in the remote repo. So we set a static version here to avoid creating
+  #             # redundant tags in the repo
+  #             export PROJ_VER=0.0.1-dev
+  #           else
+  #             # for fork builds and release builds we use the generated version number
+  #             export PROJ_VER=`cat ./artifacts/version.txt`
+  #           fi
+  #           echo "Project version in $PROJ_VER"
+  #           # Setup GHR command line parameters
+  #           if [ "${CIRCLE_BRANCH}" == "master" ]
+  #           then
+  #             # for master branches we need to set flags to show the release is
+  #             # a prerelease and should overwrite any previous prerelease builds
+  #             export GHR_PARAMS="-recreate -prerelease"
+  #           else
+  #             if [ -z "${CIRCLE_TAG}" ]
+  #             then
+  #               # pre-release builds will need to be treated as draft releases
+  #               # first we need to clean up any previously deployed drafts
+  #               export PATH=$PATH:`echo ./hub-linux**/bin`
+  #               ./clean_drafts.sh
+  #               # then we have to set the GHR flags to indicate this is a draft
+  #               # release so the tool doesn't create any tags for the release
+  #               export GHR_PARAMS="-recreate -draft"
+  #               #[[ -z "${CIRCLE_PULL_REQUEST}" ]] || export GHR_PARAMS=-recreate -draft
+  #             fi
+  #             # NOTE: for release builds there are no GHR_PARAMS needed
+  #           fi
+  #           echo "Params are ${GHR_PARAMS}"
+  #           # Now perform our publish
+  #           ./ghr_**/ghr -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_BRANCH} $GHR_PARAMS $PROJ_VER "./artifacts/binaries"
+  # publish_docs:
+  #   docker:
+  #     - image: node:8.10.0
+  #   steps:
+  #     - checkout
+  #     - add_ssh_keys:
+  #         fingerprints:
+  #           - "3b:a0:a2:63:8f:7e:ca:ac:dc:7e:68:b5:f4:89:62:45"
+  #     - attach_workspace:
+  #         at: ./artifacts
+  #     - run:
+  #         name: Install and configure dependencies
+  #         command: |
+  #           # Have to peg the gh-pages version because the latest
+  #           # version throws errors
+  #           npm install -g --silent gh-pages@3.0.0
+  #           git config user.email "ci-build@thefriendlycoder.com"
+  #           git config user.name "ci-build"
+  #           # Disable Jekyll builds on GHE
+  #           touch ./artifacts/docfx_project/_site/.nojekyl
+  #     - run:
+  #         name: Deploy docs to gh-pages branch
+  #         command: |
+  #           # Release builds will publish docs to a folder named after the tag
+  #           # prerelease buils will publish to a folder called "latest"
+  #           [[ -z "${CIRCLE_TAG}" ]] && export DOC_DIR="latest" || export DOC_DIR=`cat ./artifacts/version.txt` 
+  #           echo Publishing to $DOC_DIR
+  #           gh-pages -e $DOC_DIR --dotfiles --message "[skip ci] Updates from ${CIRCLE_BRANCH:-$CIRCLE_TAG}" --dist ./artifacts/docfx_project/_site          
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            tags:
+              # NOTE: we can't run builds for every tag
+              # because pre-release builds generate tags
+              # and we don't want an infinite loop building
+              # against those tags
+              only: /^\d+\.\d+\.\d+$/
+      # - build_docs:
+      #     requires:
+      #       - build
+      #     filters:
+      #       # We only publish pre-release docs for the mainline master
+      #       # branch, to conserve compute time and because we always
+      #       # publish all pre-release docs to the same folder so we
+      #       # risk having build clashes for branches building in parallel
+      #       branches:
+      #         only:
+      #           - master
+      #       tags:
+      #         only: /^\d+\.\d+\.\d+$/
+              
+      # - publish:
+      #     filters:
+      #       tags:
+      #         only: /^\d+\.\d+\.\d+$/
+      #     requires:
+      #       - build
+
+      # - publish_docs:
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #       tags:
+      #         only: /^\d+\.\d+\.\d+$/
+      #     requires:
+      #       - build_docs
+
+# TODO: consider loading version number from project and using for prereleases
+#       then using the -recreate flag to overwrite tag for prerelease (ie: 0.0.1-dev)
+# TODO: see if we can preserve build dependencies between builds using the cache
+#       mechanism to further speed up builds
+# TODO: see if we can eliminate unnecessary compile operations from test suite
+# TODO: see if there's a way to skip certain build steps that may not be needed,
+#8      like skipping compile and test when no source code is touched
