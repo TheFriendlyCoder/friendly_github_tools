@@ -6,11 +6,15 @@
     <PublishSingleFile>true</PublishSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
     <SelfContained>true</SelfContained>
-    <!--PublishTrimmed>true</PublishTrimmed-->
+    <PublishTrimmed>true</PublishTrimmed>
     <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
     <StartupObject>friendly_github_tools.Program</StartupObject>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Octokit" Version="0.50.0" />
   </ItemGroup>
