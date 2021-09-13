@@ -6,7 +6,7 @@
     <PublishSingleFile>true</PublishSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
     <SelfContained>true</SelfContained>
-    <PublishTrimmed>true</PublishTrimmed>
+    <!--PublishTrimmed>true</PublishTrimmed-->
     <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
     <StartupObject>friendly_github_tools.Program</StartupObject>
   </PropertyGroup>
